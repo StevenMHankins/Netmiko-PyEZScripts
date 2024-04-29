@@ -1,0 +1,54 @@
+import time
+import getpass
+from concurrent.futures import ProcessPoolExecutor
+from netmiko import ConnectHandler
+
+
+def send_commands(host):
+    """Function to connect to and run Juniper config command on each device in hosts_info"""
+    try:
+        connection = ConnectHandler(**host)
+    except ConnectionError:
+        print('Connection failed on', host['ip'])
+        return
+
+    print('Connection Established to', host['ip'])
+    connection.enable()
+    config_commands = [
+      'set snmp community redacted clients 1.1.1.1/32'
+    ]
+    connection.send_config_set(config_commands, exit_config_mode=False)
+    output = connection.commit()
+    print('Completed on', host['ip'])
+
+
+def main():
+    """Main function to use multiprocessing to concurrently connect to 10 devices; calls send_commands function"""
+
+    username = input('Username: ')
+    password = getpass.getpass('Password: ')
+    starting_time = time.perf_counter()
+
+    devices = []
+    device = {
+        'device_type': 'juniper_junos',
+        'ip': "",
+        'username': username,
+        'password': password,
+    }
+
+    with open('device_list', 'r') as file:
+        devices_file = file.read()
+
+    for line in devices_file.splitlines():
+        device['ip'] = line.strip()
+        devices.append(device)
+
+    with ProcessPoolExecutor(max_workers=10) as executor:
+        results = executor.map(send_commands, devices)
+
+    print(f'Time Elapsed: {time.perf_counter() - starting_time}')
+
+
+if __name__ == '__main__':
+     main()
