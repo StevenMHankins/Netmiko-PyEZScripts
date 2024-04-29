@@ -1,5 +1,6 @@
 import time
 import getpass
+import os #This is only needed if you are running the script from a Windows based system.
 from concurrent.futures import ProcessPoolExecutor
 from netmiko import ConnectHandler
 
@@ -15,7 +16,7 @@ def send_commands(host):
     print('Connection Established to', host['ip'])
     connection.enable()
     config_commands = [
-      'set snmp community redacted clients 1.1.1.1/32'
+      ''
     ]
     connection.send_config_set(config_commands, exit_config_mode=False)
     output = connection.commit()
@@ -27,6 +28,7 @@ def main():
 
     username = input('Username: ')
     password = getpass.getpass('Password: ')
+    device_list = os.path.normpath(input('Paste path to target hosts: ') #This is to add hosts to the script from a txt or csv
     starting_time = time.perf_counter()
 
     devices = []
