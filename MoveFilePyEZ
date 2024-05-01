@@ -1,0 +1,36 @@
+from netmiko import juniper
+from getpass import getpass
+from netmiko import ConnectHandler, file_transfer, progress_bar 
+import os #This is only needed if you are on a Windows based system
+
+host = input('Enter target switch IP: ')
+username = input('Enter your username: ')
+password = getpass()
+source_path = os.path.normpath(input('Path of file you want to send: ')) #strip out the os.path.normpath if you are on Linux
+dest_name = input('Name of file after delivery: ')
+
+
+juniper = {
+    "device_type": "juniper_junos",
+    "host": host,
+    "username": username,
+    "password": password,
+}
+
+source_file = source_path
+dest_file = dest_name
+direction = "put"
+file_system = "/var/tmp"
+
+ssh_conn = ConnectHandler(**juniper)
+transfer_dict = file_transfer(
+    ssh_conn,
+    source_file=source_file,
+    dest_file=dest_file,
+    file_system=file_system,
+    direction=direction,
+    overwrite_file=True,
+    progress4=progress_bar,
+)
+
+print(transfer_dict)
