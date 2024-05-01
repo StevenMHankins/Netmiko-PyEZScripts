@@ -1,0 +1,49 @@
+import getpass
+import pandas
+import time
+from jnpr.junos import Device
+from jnpr.junos.exception import ConnectError
+from pprint import pprint
+import os
+
+filename = os.path.normpath(input('Paste the path to your target hosts: '))
+uname = input('Username: ')
+pw = getpass.getpass('Password: ')
+starting_time = time.perf_counter()
+
+# Anything that can be added the the dev.facts function can be added here, whatever useful information you want tfomr the switch
+switch_list = {'Management IP' : [],
+          'Version' : [],
+          'Serial Number' : [],
+          'Model' : []}
+
+hosts = []
+
+with open(filename) as file:
+    for line in file:
+        hosts.extend([line.strip()])
+
+#This loop is a bit clumsy, each data point needs to be added manually. Functional, but not very clean.                        
+for switch in hosts:
+    try:
+        host = switch
+        dev = Device(host=switch,user=uname,password=pw)
+        dev.open()
+        print('Connecting to ', switch)
+        switch_list["Management IP"].extend([switch.strip()])
+        switch_list["Version"].extend([dev.facts['version']])
+        switch_list["Serial Number"].extend([dev.facts['serialnumber']])
+        switch_list["Model"].extend([dev.facts['model']])
+        print('Adding host info to dictionary...')
+    except ConnectError as err:
+        print ("Cannot connect to device: {0}".format(err))
+        continue
+
+
+data = pandas.DataFrame(switch_list)
+
+print('Data Exported to CSV!')
+print(f'Time Elapsed: {time.perf_counter() - starting_time}')
+
+#This will export the data to a CSV
+data.to_csv("SwitchInfo.csv")
