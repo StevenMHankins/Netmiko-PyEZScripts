@@ -28,7 +28,7 @@ def main():
 
     username = input('Username: ')
     password = getpass.getpass('Password: ')
-    device_list = os.path.normpath(input('Paste path to target hosts: ') #This is to add hosts to the script from a txt or csv
+    device_list = os.path.normpath(input('Paste path to target hosts: ') #This is to add hosts to the script from a txt or csv, strip out the "os.path.normpath" if on Linux
     starting_time = time.perf_counter()
 
     devices = []
